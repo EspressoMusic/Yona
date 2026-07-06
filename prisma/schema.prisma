@@ -1,0 +1,341 @@
+// SocialPilot-style social media publishing & scheduling app
+// Prisma schema — PostgreSQL (works with local Postgres or Supabase Postgres)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Platform {
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  LINKEDIN
+  TWITTER
+  YOUTUBE
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  PARTIAL
+}
+
+enum PlatformPostStatus {
+  PENDING
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+enum PublishLogStatus {
+  SUCCESS
+  FAILURE
+  INFO
+}
+
+enum ReplyStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Users & settings
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  settings       UserSettings?
+  socialAccounts SocialAccount[]
+  posts          Post[]
+  media          Media[]
+  comments       Comment[]
+  commentReplies CommentReply[]
+  sessions       Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// One row per user. Holds theme preference plus the default caption/hashtags
+// that get auto-appended to every new post unless the user removes them.
+model UserSettings {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  theme           ThemePreference @default(SYSTEM)
+  defaultCaption  String?         @db.Text
+  defaultHashtags String[]        @default([])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Connected social accounts
+// ---------------------------------------------------------------------------
+
+model SocialAccount {
+  id       String   @id @default(cuid())
+  userId   String
+  platform Platform
+
+  // Human readable identity of the connected account (handle/page name)
+  accountName String
+  accountId   String? // platform-side account/page/channel id
+
+  // Encrypted at rest — see lib/crypto.ts. Never returned to the client.
+  accessTokenEncrypted  String? @db.Text
+  refreshTokenEncrypted String? @db.Text
+  tokenExpiresAt        DateTime?
+
+  status         ConnectionStatus @default(DISCONNECTED)
+  errorMessage   String?
+  connectedAt    DateTime?
+  disconnectedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platformPosts PostPlatform[]
+  comments      Comment[]
+
+  @@unique([userId, platform, accountId])
+  @@index([userId])
+  @@map("social_accounts")
+}
+
+// ---------------------------------------------------------------------------
+// Media uploads
+// ---------------------------------------------------------------------------
+
+model Media {
+  id        String    @id @default(cuid())
+  userId    String
+  postId    String?
+  type      MediaType
+  url       String
+  filename  String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([postId])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Posts & scheduling
+// ---------------------------------------------------------------------------
+
+model Post {
+  id     String @id @default(cuid())
+  userId String
+
+  // What the user typed, before default caption/hashtags were appended
+  rawCaption String? @db.Text
+  // Final caption actually sent to platforms (raw + defaults, unless removed)
+  caption    String  @db.Text
+  hashtags   String[] @default([])
+
+  status      PostStatus @default(DRAFT)
+  publishNow  Boolean    @default(false)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media         Media[]
+  platformPosts PostPlatform[]
+  publishLogs   PublishLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("posts")
+}
+
+// Per-platform publish status for a post (one row per platform the post targets)
+model PostPlatform {
+  id              String   @id @default(cuid())
+  postId          String
+  platform        Platform
+  socialAccountId String?
+
+  status         PlatformPostStatus @default(PENDING)
+  platformPostId String?
+  platformUrl    String?
+  errorMessage   String?
+  publishedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  socialAccount SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+  publishLogs   PublishLog[]
+  comments      Comment[]
+  analytics     Analytics[]
+
+  @@unique([postId, platform])
+  @@index([postId])
+  @@index([status])
+  @@map("post_platforms")
+}
+
+// Full audit trail of every publish attempt (append-only)
+model PublishLog {
+  id             String           @id @default(cuid())
+  postId         String
+  postPlatformId String?
+  platform       Platform
+  status         PublishLogStatus
+  message        String           @db.Text
+  createdAt      DateTime         @default(now())
+
+  post         Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postPlatform PostPlatform? @relation(fields: [postPlatformId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([postPlatformId])
+  @@map("publish_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Comments & replies
+// ---------------------------------------------------------------------------
+
+model Comment {
+  id              String   @id @default(cuid())
+  userId          String
+  socialAccountId String
+  postPlatformId  String?
+  platform        Platform
+
+  platformCommentId String   @unique
+  authorName        String
+  authorHandle      String?
+  text              String   @db.Text
+  likeCount         Int?
+  postedAt          DateTime
+  fetchedAt         DateTime @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccount SocialAccount  @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  postPlatform  PostPlatform?  @relation(fields: [postPlatformId], references: [id], onDelete: SetNull)
+  replies       CommentReply[]
+
+  @@index([userId])
+  @@index([platform])
+  @@index([postPlatformId])
+  @@map("comments")
+}
+
+model CommentReply {
+  id        String      @id @default(cuid())
+  commentId String
+  userId    String
+  text      String      @db.Text
+  status    ReplyStatus @default(PENDING)
+
+  platformReplyId String?
+  errorMessage    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@index([userId])
+  @@map("comment_replies")
+}
+
+// ---------------------------------------------------------------------------
+// Analytics
+// ---------------------------------------------------------------------------
+
+// Daily snapshot of performance metrics for a published post on a platform.
+// One row per (postPlatform, date) so the calendar can show per-day totals
+// and growth-vs-previous-day comparisons.
+model Analytics {
+  id             String   @id @default(cuid())
+  postPlatformId String
+  platform       Platform
+  date           DateTime @db.Date
+
+  views    Int @default(0)
+  likes    Int @default(0)
+  comments Int @default(0)
+  shares   Int @default(0)
+
+  fetchedAt DateTime @default(now())
+
+  postPlatform PostPlatform @relation(fields: [postPlatformId], references: [id], onDelete: Cascade)
+
+  @@unique([postPlatformId, date])
+  @@index([date])
+  @@map("analytics")
+}

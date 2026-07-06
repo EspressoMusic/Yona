@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { Plus, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -86,11 +87,18 @@ export default function PostsPage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                tab === t.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                "relative rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                tab === t.key ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {t.label}
+              {tab === t.key && (
+                <motion.span
+                  layoutId="posts-tab-pill"
+                  className="absolute inset-0 rounded-lg bg-primary/10"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+              <span className="relative">{t.label}</span>
             </button>
           ))}
         </div>

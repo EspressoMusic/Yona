@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,38 +35,53 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
     };
   }, [open, onClose]);
 
-  if (!open || !mounted) return null;
+  if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        className={cn(
-          "relative z-10 w-full max-w-lg rounded-2xl border border-border bg-surface shadow-xl max-h-[90vh] overflow-y-auto",
-          className
-        )}
-        role="dialog"
-        aria-modal="true"
-      >
-        {title && (
-          <div className="flex items-center justify-between border-b border-border p-5">
-            <h2 className="text-base font-semibold text-foreground">{title}</h2>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        )}
-        <div className="p-5">{children}</div>
-      </div>
-    </div>,
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="dialog-overlay"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+        >
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden
+          />
+          <motion.div
+            className={cn(
+              "relative z-10 w-full max-w-lg rounded-2xl border border-border bg-surface shadow-xl max-h-[90vh] overflow-y-auto",
+              className
+            )}
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {title && (
+              <div className="flex items-center justify-between border-b border-border p-5">
+                <h2 className="text-base font-semibold text-foreground">{title}</h2>
+                <button
+                  onClick={onClose}
+                  className="rounded-lg p-1 text-muted-foreground hover:bg-surface-muted"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+            <div className="p-5">{children}</div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

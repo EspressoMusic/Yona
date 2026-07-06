@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { LogOut, ChevronDown } from "lucide-react";
 import { initials } from "@/lib/utils";
 
@@ -39,22 +40,30 @@ export function UserMenu({ name, email }: { name: string | null; email: string }
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-lg">
-          <div className="px-3 py-2">
-            <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
-            <p className="text-xs text-muted-foreground truncate">{email}</p>
-          </div>
-          <div className="my-1 h-px bg-border" />
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10"
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="absolute right-0 top-full mt-2 w-56 origin-top-right rounded-xl border border-border bg-surface p-1.5 shadow-lg"
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
-            <LogOut className="h-4 w-4" />
-            Log out
-          </button>
-        </div>
-      )}
+            <div className="px-3 py-2">
+              <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{email}</p>
+            </div>
+            <div className="my-1 h-px bg-border" />
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10"
+            >
+              <LogOut className="h-4 w-4" />
+              Log out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

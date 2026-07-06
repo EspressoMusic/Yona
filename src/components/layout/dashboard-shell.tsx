@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar, MobileSidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { PageTransition } from "./page-transition";
 
 export function DashboardShell({
   name,
@@ -21,7 +22,9 @@ export function DashboardShell({
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={() => setMobileOpen(true)} name={name} email={email} />
-        <main className="flex-1 overflow-y-auto bg-background p-4 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-background p-4 sm:p-6">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );

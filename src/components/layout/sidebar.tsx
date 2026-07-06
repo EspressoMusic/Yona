@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Rocket,
   Send,
@@ -51,15 +52,20 @@ export function SidebarContent({
               onClick={onNavigate}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 collapsed && "justify-center px-0",
-                active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+                active ? "text-primary" : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
               )}
             >
-              <Icon className="h-4.5 w-4.5 shrink-0" />
-              {!collapsed && item.label}
+              {active && (
+                <motion.span
+                  layoutId="nav-active-pill"
+                  className="absolute inset-0 rounded-xl bg-primary/10"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+              <Icon className="relative h-4.5 w-4.5 shrink-0" />
+              {!collapsed && <span className="relative">{item.label}</span>}
             </Link>
           );
         })}
@@ -117,20 +123,36 @@ export function Sidebar() {
 }
 
 export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-40 md:hidden">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div className="relative z-10 h-full w-72 bg-surface shadow-xl">
-        <button
-          onClick={onClose}
-          className="absolute right-3 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-surface-muted"
-          aria-label="Close menu"
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="mobile-sidebar-overlay"
+          className="fixed inset-0 z-40 md:hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
         >
-          <X className="h-5 w-5" />
-        </button>
-        <SidebarContent onNavigate={onClose} />
-      </div>
-    </div>
+          <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+          <motion.div
+            className="relative z-10 h-full w-72 bg-surface shadow-xl"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+          >
+            <button
+              onClick={onClose}
+              className="absolute right-3 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-surface-muted"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <SidebarContent onNavigate={onClose} />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

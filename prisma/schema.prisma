@@ -28,6 +28,7 @@ enum ThemePreference {
   LIGHT
   DARK
   SYSTEM
+  WARM
 }
 
 enum ConnectionStatus {

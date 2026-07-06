@@ -46,7 +46,7 @@ export const updatePostSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  theme: z.enum(["LIGHT", "DARK", "SYSTEM"]).optional(),
+  theme: z.enum(["LIGHT", "DARK", "SYSTEM", "WARM"]).optional(),
   defaultCaption: z.string().max(2000).optional().nullable(),
   defaultHashtags: z.array(z.string().trim().max(60)).max(50).optional(),
 });

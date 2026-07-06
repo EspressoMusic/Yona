@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *, .theme-warm, .theme-warm *));
 
 :root {
   --background: #f6f7fb;
@@ -32,6 +32,23 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #3b82f6;
+}
+
+/* Warm — a terracotta-and-cocoa dark theme, in the spirit of Claude's UI. */
+.theme-warm {
+  --background: #262624;
+  --surface: #2d2b28;
+  --surface-muted: #3a3733;
+  --foreground: #f2ede4;
+  --muted-foreground: #a8a196;
+  --border: #423d36;
+  --primary: #cc7c5c;
+  --primary-foreground: #262624;
+  --primary-hover: #dd9276;
+  --success: #7fb069;
+  --warning: #e0a458;
+  --danger: #e0685c;
+  --info: #7ba7c9;
 }
 
 @theme inline {

@@ -2,11 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-type Theme = "LIGHT" | "DARK" | "SYSTEM";
+type Theme = "LIGHT" | "DARK" | "SYSTEM" | "WARM";
 
 interface ThemeContextValue {
   theme: Theme;
-  resolvedTheme: "LIGHT" | "DARK";
+  resolvedTheme: "LIGHT" | "DARK" | "WARM";
   setTheme: (theme: Theme) => void;
 }
 
@@ -14,9 +14,11 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function applyThemeClass(theme: Theme) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const isDark = theme === "DARK" || (theme === "SYSTEM" && prefersDark);
+  const isWarm = theme === "WARM";
+  const isDark = !isWarm && (theme === "DARK" || (theme === "SYSTEM" && prefersDark));
   document.documentElement.classList.toggle("dark", isDark);
-  return isDark ? "DARK" : "LIGHT";
+  document.documentElement.classList.toggle("theme-warm", isWarm);
+  return isWarm ? "WARM" : isDark ? "DARK" : "LIGHT";
 }
 
 export function ThemeProvider({
@@ -27,7 +29,7 @@ export function ThemeProvider({
   children: React.ReactNode;
 }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<"LIGHT" | "DARK">("LIGHT");
+  const [resolvedTheme, setResolvedTheme] = useState<"LIGHT" | "DARK" | "WARM">("LIGHT");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("sp-theme") as Theme | null;

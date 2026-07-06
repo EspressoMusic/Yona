@@ -7,7 +7,7 @@ export type Platform = "INSTAGRAM" | "FACEBOOK" | "TIKTOK" | "LINKEDIN" | "TWITT
 export type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHING" | "PUBLISHED" | "FAILED" | "PARTIAL";
 export type PlatformPostStatus = "PENDING" | "SCHEDULED" | "PUBLISHING" | "PUBLISHED" | "FAILED";
 export type ReplyStatus = "PENDING" | "SENT" | "FAILED";
-export type ThemePreference = "LIGHT" | "DARK" | "SYSTEM";
+export type ThemePreference = "LIGHT" | "DARK" | "SYSTEM" | "WARM";
 
 export interface MediaItem {
   id: string;

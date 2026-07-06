@@ -1,16 +1,21 @@
 "use client";
 
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor, Flame } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
 const OPTIONS = [
   { value: "LIGHT" as const, icon: Sun, label: "Light mode" },
   { value: "DARK" as const, icon: Moon, label: "Dark mode" },
+  { value: "WARM" as const, icon: Flame, label: "Warm mode" },
   { value: "SYSTEM" as const, icon: Monitor, label: "System theme" },
 ];
 
-export function ThemeToggle({ onAfterChange }: { onAfterChange?: (theme: "LIGHT" | "DARK" | "SYSTEM") => void }) {
+export function ThemeToggle({
+  onAfterChange,
+}: {
+  onAfterChange?: (theme: "LIGHT" | "DARK" | "SYSTEM" | "WARM") => void;
+}) {
   const { theme, setTheme } = useTheme();
 
   return (

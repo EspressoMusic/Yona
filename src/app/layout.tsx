@@ -26,9 +26,13 @@ const noFlashScript = `
 (function () {
   try {
     var theme = window.localStorage.getItem("sp-theme") || "SYSTEM";
-    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    var isDark = theme === "DARK" || (theme === "SYSTEM" && prefersDark);
-    if (isDark) document.documentElement.classList.add("dark");
+    if (theme === "WARM") {
+      document.documentElement.classList.add("theme-warm");
+    } else {
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var isDark = theme === "DARK" || (theme === "SYSTEM" && prefersDark);
+      if (isDark) document.documentElement.classList.add("dark");
+    }
   } catch (e) {}
 })();
 `;

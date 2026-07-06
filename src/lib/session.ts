@@ -7,7 +7,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   verifySessionToken,
 } from "@/lib/auth";
-import type { User } from "@/generated/prisma/client";
+import type { User } from "@prisma/client";
 
 export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();

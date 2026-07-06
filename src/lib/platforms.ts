@@ -1,4 +1,4 @@
-import type { Platform } from "@/generated/prisma/client";
+import type { Platform } from "@prisma/client";
 
 export const PLATFORM_LIST: Platform[] = [
   "INSTAGRAM",

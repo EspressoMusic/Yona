@@ -1,4 +1,4 @@
-import type { Platform } from "@/generated/prisma/client";
+import type { Platform } from "@prisma/client";
 
 // Minimal account shape every service needs. Tokens passed in here are
 // already decrypted by the caller (see services/social/index.ts) — service

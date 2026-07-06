@@ -1,4 +1,4 @@
-import type { Platform, SocialAccount } from "@/generated/prisma/client";
+import type { Platform, SocialAccount } from "@prisma/client";
 import { decryptSecret } from "@/lib/crypto";
 import { instagramService } from "./instagram";
 import { facebookService } from "./facebook";

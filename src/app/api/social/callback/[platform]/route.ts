@@ -4,7 +4,7 @@ import { getAuthenticatedUserId } from "@/lib/session";
 import { encryptSecret } from "@/lib/crypto";
 import { PLATFORM_LIST } from "@/lib/platforms";
 import { getSocialService } from "@/services/social";
-import type { Platform } from "@/generated/prisma/client";
+import type { Platform } from "@prisma/client";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ platform: string }> }) {
   const { platform: platformParam } = await params;

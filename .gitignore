@@ -41,8 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
-
 # uploaded media (local disk storage — see src/lib/storage.ts)
 /public/uploads/*
 !/public/uploads/.gitkeep

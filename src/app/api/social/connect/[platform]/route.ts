@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/session";
 import { PLATFORM_LIST } from "@/lib/platforms";
 import { getSocialService } from "@/services/social";
-import type { Platform } from "@/generated/prisma/client";
+import type { Platform } from "@prisma/client";
 
 // Starts the OAuth connect flow for a platform. This is a plain browser
 // navigation (the user clicks "Connect" and is redirected to the provider),

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser, withApiErrorHandling } from "@/lib/api-utils";
 import { PLATFORM_LIST } from "@/lib/platforms";
-import type { Platform } from "@/generated/prisma/client";
+import type { Platform } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   return withApiErrorHandling(async () => {

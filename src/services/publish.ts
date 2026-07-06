@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSocialService, toAccountContext } from "@/services/social";
-import type { Platform, PostPlatform } from "@/generated/prisma/client";
+import type { Platform, PostPlatform } from "@prisma/client";
 
 // Publishes every platform target on a post that hasn't succeeded yet, then
 // rolls the per-platform results up into the parent Post's overall status.
